@@ -1,0 +1,4 @@
+[wokwi]
+version = 1
+firmware = "build/flasher_args.json"
+elf = "build/p1p2mqtt_esp32c6.elf"

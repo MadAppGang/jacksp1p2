@@ -1,0 +1,92 @@
+menu "P1P2MQTT Configuration"
+
+    choice P1P2_SERIES
+        prompt "Daikin series protocol"
+        default P1P2_F_SERIES
+        help
+            Select the Daikin protocol series to support.
+
+        config P1P2_F_SERIES
+            bool "F-Series (VRV/Sky Air: FDY, FDYQ, FXMQ)"
+        config P1P2_E_SERIES
+            bool "E-Series (Altherma)"
+    endchoice
+
+    choice P1P2_F_MODEL
+        prompt "F-Series model variant"
+        default P1P2_F_MODEL_BCL
+        depends on P1P2_F_SERIES
+        help
+            Select the specific F-Series model variant for control packet construction.
+            Model A/B/C/L/LA = model 10 (FDY/FBQ type)
+            Model P/PA = model 11 (FXMQ type)
+            Model M = model 12 (FDYQ type)
+
+        config P1P2_F_MODEL_BCL
+            bool "Model A/B/C/L/LA (FDY/FBQ — 0x38 control, 18-byte payload)"
+        config P1P2_F_MODEL_P
+            bool "Model P/PA (FXMQ — 0x38 control, 20-byte payload)"
+        config P1P2_F_MODEL_M
+            bool "Model M (FDYQ — 0x3B control, 22-byte payload)"
+    endchoice
+
+    config P1P2_F_MODEL_ID
+        int
+        default 10 if P1P2_F_MODEL_BCL
+        default 11 if P1P2_F_MODEL_P
+        default 12 if P1P2_F_MODEL_M
+        default 10
+
+    menu "GPIO Pin Assignment"
+        config P1P2_GPIO_RX
+            int "Bus RX pin (MCPWM capture input)"
+            default 2
+            help
+                GPIO connected to XL1192/MM1192 RXD output (bus read).
+
+        config P1P2_GPIO_TX
+            int "Bus TX pin (MCPWM generator output)"
+            default 3
+            help
+                GPIO connected to XL1192/MM1192 TXD input (bus write).
+
+        config P1P2_GPIO_ADC0
+            int "ADC channel 0 pin (bus voltage P1)"
+            default 0
+            help
+                ADC pin for bus voltage monitoring channel 0.
+
+        config P1P2_GPIO_ADC1
+            int "ADC channel 1 pin (bus voltage P2)"
+            default 1
+            help
+                ADC pin for bus voltage monitoring channel 1.
+
+        config P1P2_GPIO_LED_POWER
+            int "LED Power (white) GPIO"
+            default 4
+
+        config P1P2_GPIO_LED_READ
+            int "LED Read (green) GPIO"
+            default 5
+
+        config P1P2_GPIO_LED_WRITE
+            int "LED Write (blue) GPIO"
+            default 6
+
+        config P1P2_GPIO_LED_ERROR
+            int "LED Error (red) GPIO"
+            default 7
+    endmenu
+
+    config P1P2_CONTROL_LEVEL
+        int "Default control level (0=off, 1=aux controller, 5=monitor only)"
+        default 0
+        range 0 5
+        help
+            Control level for F-series auxiliary controller operation.
+            0: Control disabled (read-only monitoring)
+            1: Auxiliary controller active (responds to 0x38/0x3B)
+            5: Monitor only (listens but does not respond)
+
+endmenu
