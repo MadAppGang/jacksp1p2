@@ -1,9 +1,10 @@
-# P1P2MQTT ESP32-C6 Partition Table — Dual OTA
+# P1P2MQTT ESP32-C6 Partition Table — Single App (4MB flash)
+# For dual OTA, use 8MB flash and increase partition sizes
 # Name,   Type,  SubType, Offset,   Size,    Flags
-nvs,      data,  nvs,     0x9000,   0x6000,
-otadata,  data,  ota,     0xf000,   0x2000,
-phy_init, data,  phy,     0x11000,  0x1000,
-ota_0,    app,   ota_0,   0x20000,  0x1C0000,
-ota_1,    app,   ota_1,   0x1E0000, 0x1C0000,
-nvs_key,  data,  nvs_keys,0x3A0000, 0x1000,
-fctry,    data,  nvs,     0x3A1000, 0x6000,
+esp_secure_cert, 0x3F, ,  0xd000,   0x2000,  encrypted
+nvs,      data,  nvs,     0x10000,  0xC000,
+nvs_keys, data,  nvs_keys,,         0x1000,  encrypted
+otadata,  data,  ota,     ,         0x2000
+phy_init, data,  phy,     ,         0x1000,
+factory,  app,   factory, 0x20000,  0x3C0000,
+fctry,    data,  nvs,     0x3E0000, 0x6000

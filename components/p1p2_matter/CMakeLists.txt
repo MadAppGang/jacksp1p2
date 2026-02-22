@@ -14,7 +14,7 @@ set(MATTER_REQUIRES
 # When esp-matter SDK is available, add the C++ bridge and SDK dependencies
 if(DEFINED ENV{ESP_MATTER_PATH})
     list(APPEND MATTER_SRCS "p1p2_matter_bridge.cpp")
-    list(APPEND MATTER_REQUIRES esp_matter chip)
+    list(APPEND MATTER_REQUIRES esp_matter chip openthread)
 endif()
 
 idf_component_register(

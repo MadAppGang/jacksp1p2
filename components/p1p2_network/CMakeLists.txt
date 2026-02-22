@@ -6,7 +6,7 @@ set(NET_REQUIRES
 
 # When esp-matter SDK is available, add OpenThread dependencies
 if(DEFINED ENV{ESP_MATTER_PATH})
-    list(APPEND NET_REQUIRES openthread esp_openthread)
+    list(APPEND NET_REQUIRES openthread)
 endif()
 
 idf_component_register(
