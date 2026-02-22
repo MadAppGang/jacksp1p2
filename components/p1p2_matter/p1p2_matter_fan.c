@@ -12,6 +12,10 @@
 #include "p1p2_matter_clusters.h"
 #include "p1p2_protocol.h"
 
+#ifdef P1P2_MATTER_SDK_AVAILABLE
+#include "p1p2_matter_bridge.h"
+#endif
+
 static const char *TAG = "matter_fan";
 
 static uint8_t prev_fan_mode = 0xFF;
@@ -53,11 +57,10 @@ void p1p2_matter_fan_update(const p1p2_hvac_state_t *state)
 
     if (fan_mode != prev_fan_mode) {
         ESP_LOGI(TAG, "FanMode: %d", fan_mode);
-        /*
-         * TODO: esp_matter::attribute::update(
-         *     EP_FAN, CLUSTER_FAN_CONTROL,
-         *     ATTR_FAN_MODE, &fan_mode);
-         */
+#ifdef P1P2_MATTER_SDK_AVAILABLE
+        p1p2_matter_bridge_update_u8(EP_FAN, CLUSTER_FAN_CONTROL,
+                                      ATTR_FAN_MODE, fan_mode);
+#endif
         prev_fan_mode = fan_mode;
     }
 }

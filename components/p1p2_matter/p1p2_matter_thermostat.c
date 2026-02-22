@@ -13,6 +13,10 @@
 #include "p1p2_matter_clusters.h"
 #include "p1p2_protocol.h"
 
+#ifdef P1P2_MATTER_SDK_AVAILABLE
+#include "p1p2_matter_bridge.h"
+#endif
+
 static const char *TAG = "matter_therm";
 
 /* Cached previous values for change detection */
@@ -67,31 +71,46 @@ void p1p2_matter_thermostat_update(const p1p2_hvac_state_t *state)
 
     if (local_temp != prev_local_temp) {
         ESP_LOGD(TAG, "LocalTemperature: %d (%.1f°C)", local_temp, local_temp / 100.0);
-        /*
-         * TODO: esp_matter::attribute::update(
-         *     EP_THERMOSTAT, CLUSTER_THERMOSTAT,
-         *     ATTR_LOCAL_TEMPERATURE, &local_temp);
-         */
+#ifdef P1P2_MATTER_SDK_AVAILABLE
+        p1p2_matter_bridge_update_i16(EP_THERMOSTAT, CLUSTER_THERMOSTAT,
+                                       ATTR_LOCAL_TEMPERATURE, local_temp);
+#endif
         prev_local_temp = local_temp;
     }
 
     if (cool_sp != prev_cool_sp) {
         ESP_LOGD(TAG, "OccupiedCoolingSetpoint: %d (%.1f°C)", cool_sp, cool_sp / 100.0);
+#ifdef P1P2_MATTER_SDK_AVAILABLE
+        p1p2_matter_bridge_update_i16(EP_THERMOSTAT, CLUSTER_THERMOSTAT,
+                                       ATTR_OCCUPIED_COOLING_SETPOINT, cool_sp);
+#endif
         prev_cool_sp = cool_sp;
     }
 
     if (heat_sp != prev_heat_sp) {
         ESP_LOGD(TAG, "OccupiedHeatingSetpoint: %d (%.1f°C)", heat_sp, heat_sp / 100.0);
+#ifdef P1P2_MATTER_SDK_AVAILABLE
+        p1p2_matter_bridge_update_i16(EP_THERMOSTAT, CLUSTER_THERMOSTAT,
+                                       ATTR_OCCUPIED_HEATING_SETPOINT, heat_sp);
+#endif
         prev_heat_sp = heat_sp;
     }
 
     if (mode != prev_mode) {
         ESP_LOGI(TAG, "SystemMode: %d", mode);
+#ifdef P1P2_MATTER_SDK_AVAILABLE
+        p1p2_matter_bridge_update_u8(EP_THERMOSTAT, CLUSTER_THERMOSTAT,
+                                      ATTR_SYSTEM_MODE, mode);
+#endif
         prev_mode = mode;
     }
 
     if (running != prev_running) {
         ESP_LOGD(TAG, "RunningState: 0x%04X", running);
+#ifdef P1P2_MATTER_SDK_AVAILABLE
+        p1p2_matter_bridge_update_u16(EP_THERMOSTAT, CLUSTER_THERMOSTAT,
+                                       ATTR_THERMOSTAT_RUNNING_STATE, running);
+#endif
         prev_running = running;
     }
 }

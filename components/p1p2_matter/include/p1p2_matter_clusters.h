@@ -19,9 +19,12 @@ extern "C" {
 #define EP_ROOT             0   /* Root node (mandatory) */
 #define EP_THERMOSTAT       1   /* Thermostat cluster */
 #define EP_FAN              2   /* Fan Control cluster */
-#define EP_TEMP_SENSORS     3   /* Temperature Measurement clusters */
+#define EP_TEMP_OUTDOOR     3   /* Temperature Measurement: outdoor */
 #define EP_CUSTOM_VRV       4   /* Manufacturer-specific VRV data */
 #define EP_DHW_ONOFF        5   /* On/Off for DHW control */
+#define EP_TEMP_ROOM        6   /* Temperature Measurement: room */
+#define EP_TEMP_LEAVING     7   /* Temperature Measurement: leaving water */
+#define EP_TEMP_RETURN      8   /* Temperature Measurement: return water */
 
 /* ---- Standard Matter Cluster IDs ---- */
 #define CLUSTER_ON_OFF              0x0006

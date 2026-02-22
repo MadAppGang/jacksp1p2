@@ -2,9 +2,8 @@
  * P1P2 Matter Device — Matter node setup, endpoint registration
  *
  * Creates the Matter device as a Thermostat with multiple endpoints.
- * When the esp-matter SDK is available, this uses the real Matter API.
- * For now, it provides the structure and callbacks that will be linked
- * against the SDK.
+ * When P1P2_MATTER_SDK_AVAILABLE is defined, delegates to the C++ bridge
+ * which calls the real esp-matter SDK. Otherwise, logs-only stubs.
  *
  * ESP32-C6 port: 2026
  */
@@ -18,16 +17,11 @@
 #include "p1p2_matter_clusters.h"
 #include "p1p2_protocol.h"
 
-static const char *TAG = "p1p2_matter";
+#ifdef P1P2_MATTER_SDK_AVAILABLE
+#include "p1p2_matter_bridge.h"
+#endif
 
-/*
- * NOTE: The actual Matter SDK integration uses esp_matter APIs.
- * This file provides the framework; actual SDK calls are conditional
- * on ESP_MATTER_PATH being set during build.
- *
- * The structure follows Espressif's thermostat example:
- * https://github.com/espressif/esp-matter/tree/main/examples/thermostat
- */
+static const char *TAG = "p1p2_matter";
 
 /* Matter device state */
 static bool matter_initialized = false;
@@ -152,36 +146,18 @@ esp_err_t p1p2_matter_init(void)
 {
     ESP_LOGI(TAG, "Initializing Matter device");
 
-    /*
-     * TODO: When esp-matter SDK is integrated, replace this with:
-     *
-     * esp_matter::node_t *node = esp_matter::node::create(...);
-     *
-     * // Endpoint 1: Thermostat
-     * esp_matter::endpoint_t *thermostat_ep =
-     *     esp_matter::thermostat::create(node, ...);
-     *
-     * // Endpoint 2: Fan Control
-     * esp_matter::endpoint_t *fan_ep =
-     *     esp_matter::fan::create(node, ...);
-     *
-     * // Endpoint 3: Temperature Sensor
-     * esp_matter::endpoint_t *temp_ep =
-     *     esp_matter::temperature_sensor::create(node, ...);
-     *
-     * // Endpoint 4: Custom VRV cluster
-     * // Use esp_matter::cluster::create() with manufacturer-specific ID
-     *
-     * // Endpoint 5: On/Off (DHW)
-     * esp_matter::endpoint_t *dhw_ep =
-     *     esp_matter::on_off_light::create(node, ...);
-     *
-     * // Register attribute callback
-     * esp_matter::attribute::set_callback(matter_attribute_update_cb);
-     */
+#ifdef P1P2_MATTER_SDK_AVAILABLE
+    esp_err_t ret = p1p2_matter_bridge_create_device(matter_attribute_update_cb);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Bridge device creation failed: %s", esp_err_to_name(ret));
+        return ret;
+    }
+    ESP_LOGI(TAG, "Matter device initialized (SDK active)");
+#else
+    ESP_LOGI(TAG, "Matter device initialized (stub mode — no SDK)");
+#endif
 
     matter_initialized = true;
-    ESP_LOGI(TAG, "Matter device initialized (SDK integration pending)");
     return ESP_OK;
 }
 
@@ -191,14 +167,17 @@ esp_err_t p1p2_matter_start(void)
         return ESP_ERR_INVALID_STATE;
     }
 
-    /*
-     * TODO: When esp-matter SDK is integrated:
-     * esp_matter::start(matter_attribute_update_cb);
-     */
+#ifdef P1P2_MATTER_SDK_AVAILABLE
+    esp_err_t ret = p1p2_matter_bridge_start();
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Bridge start failed: %s", esp_err_to_name(ret));
+        return ret;
+    }
+#endif
 
     /* Start matter attribute update task */
-    BaseType_t ret = xTaskCreate(matter_task, "matter", 4096, NULL, 10, NULL);
-    if (ret != pdPASS) return ESP_ERR_NO_MEM;
+    BaseType_t ret_task = xTaskCreate(matter_task, "matter", 4096, NULL, 10, NULL);
+    if (ret_task != pdPASS) return ESP_ERR_NO_MEM;
 
     ESP_LOGI(TAG, "Matter stack started");
     return ESP_OK;
@@ -221,5 +200,7 @@ void p1p2_matter_factory_reset(void)
 {
     ESP_LOGW(TAG, "Factory reset requested");
     matter_commissioned = false;
-    /* TODO: esp_matter::factory_reset(); */
+#ifdef P1P2_MATTER_SDK_AVAILABLE
+    p1p2_matter_bridge_factory_reset();
+#endif
 }
